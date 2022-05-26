@@ -1,0 +1,47 @@
+- hosts: all
+  remote_user: ubuntu
+  become: yes
+  vars:
+   HTTP_PORT: 8060
+  tasks:
+    - name: install dependencies
+      apt:
+        name: "{{ package }} "
+        state: present
+      vars:
+        package:
+        - openjdk-11-jre
+        - fontconfig 
+ 
+    - name: Ensure the Jenkins is added to repo
+      apt_key:
+        url: https://pkg.jenkins.io/debian-stable/jenkins.io.key
+          
+        state: present
+ 
+    - name: repository of Debian packages to the sources.list of the server
+      ansible.builtin.shell: sh -c 'echo deb http://pkg.jenkins.io/debian-stable binary/ > /etc/apt/sources.list.d/jenkins.list' 
+
+    - name: going to update apt package
+      apt:
+        name: "*"
+        state: present
+    - name: changing tomcat Parameters
+      template:
+        src: ./jenkins.j2
+        dest: /etc/default/jenkins
+        mode: '0777'
+    
+    - name: Ensure Jenkins installed
+      apt:
+        name: jenkins
+        state: present
+        update_cache: yes
+    
+    - name: repository of Debian packages to the sources.list of the server
+      ansible.builtin.shell: sudo /etc/init.d/jenkins start
+     
+    
+    
+ 
+    
